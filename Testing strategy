@@ -1,0 +1,107 @@
+# QA Testing Strategy: Customer Service Ticket Quality Score Dashboard
+
+## Overview
+
+This dashboard displays quality scores for customer service tickets across three metrics: Customer Satisfaction, Agent Empathy, and Resolution Time. Users can adjust local viewing preferences (how they weight each metric) and lock those preferences to prevent accidental changes.
+
+The backend calculates and sends the scores. The frontend lets users view and interact with that data. We test that the interface works reliably.
+
+---
+
+## What We Test
+
+### 1. Slider Interaction
+Users need to adjust how they view metrics. Sliders must respond accurately.
+
+**Test:** Sliders move, display values update, constraints enforce (0-100 range).
+
+### 2. Lock Mechanism
+Users lock their viewing preferences during analysis so they don't accidentally change. Lock must work and persist.
+
+**Test:** Lock button disables slider, visual state shows locked, lock survives reload.
+
+### 3. Display Accuracy
+Chart must render with correct data points, tooltips must show accurate date/score information.
+
+**Test:** Chart renders, data points visible, score displays as valid number (0-100), tooltips appear on hover.
+
+### 4. Persistence
+User preferences (slider positions, lock states) must survive page reload so users don't lose their context.
+
+**Test:** Adjust sliders, lock metrics, reload page, verify settings remain.
+
+### 5. Responsive Design
+Dashboard must work on desktop, tablet, and mobile without breaking.
+
+**Test:** Layout holds on different viewports, controls remain functional.
+
+---
+
+## How We Scale
+
+### Phase 1: Now (MVP)
+**Focus:** Core functionality works reliably.
+
+- 20 E2E tests covering slider interaction, lock, persistence, chart rendering
+- Manual testing of edge cases
+- Basic CI/CD (tests run on every PR)
+
+Success: All tests pass, users can adjust and lock without issues.
+
+### Phase 2: When Volume Matters (100K+ tickets/day)
+**Focus:** Performance under load.
+
+- Database query performance: trend queries <100ms p99
+- Chart rendering: dashboard loads <2s even with full 14-day history
+- Concurrent users: 50+ simultaneous requests stay responsive
+
+Tools: Apache JMeter for load, Playwright for UI metrics
+
+### Phase 3: Enterprise Scale (1M+ tickets/day)
+**Focus:** Resilience and reliability.
+
+- System behavior when backend is slow or unavailable
+- Data consistency across distributed systems
+- Graceful degradation if services fail
+
+Tools: Chaos engineering, distributed tracing
+
+---
+
+## Tools
+
+| What | Tool | Why |
+|------|------|-----|
+| E2E Tests | Playwright | Fast, reliable, excellent for UI interaction testing |
+| Unit Tests | Jest | Backend algorithm validation |
+| Load Testing | Apache JMeter | Simulates concurrent users, distributed load |
+| Monitoring | Datadog/CloudWatch | Real-time performance tracking |
+
+---
+
+## CI/CD
+
+- **Every PR:** Run 20 E2E tests (target <2 min)
+- **Merge to main:** Full E2E + unit tests
+- **Nightly:** Load tests at 1% of production scale
+- **Weekly:** Performance baseline checks
+
+---
+
+## Success Metrics
+
+| Metric | Target | Why |
+|--------|--------|-----|
+| E2E test pass rate | 100% locally, 95%+ CI | No regressions in core features |
+| Slider responsiveness | <100ms | Users expect immediate feedback |
+| Chart load time | <2s | Acceptable for SaaS dashboards |
+| Persistence | 100% | Users never lose their preferences |
+| Lock reliability | 100% | Users trust their settings stay locked |
+
+---
+
+## Summary
+
+This is straightforward UI testing. Sliders work, lock works, chart displays, preferences persist, responsive design holds. The backend handles scoring. We test the interface.
+
+20 E2E tests handle the critical paths. Load testing comes when you need it (Phase 2). No over-engineering.
